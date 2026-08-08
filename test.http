@@ -1,0 +1,25 @@
+### health
+GET http://localhost:8080/v1/systems/ping
+
+### 利用可能なエージェント一覧
+GET http://localhost:8080/api/list-apps
+
+### セッション作成
+POST http://localhost:8080/api/apps/hello_time_agent/users/u_123/sessions/s_123
+Content-Type: application/json
+
+{}
+
+### エージェント実行（一括レスポンス）
+POST http://localhost:8080/api/run
+Content-Type: application/json
+
+{
+  "appName": "hello_time_agent",
+  "userId": "u_123",
+  "sessionId": "s_123",
+  "newMessage": {
+    "role": "user",
+    "parts": [{ "text": "東京の現在時刻は？" }]
+  }
+}

@@ -1,0 +1,26 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+build:
+  artifacts:
+    - image: agent-app
+      context: ../app
+      docker:
+        dockerfile: ./app/Dockerfile
+  local:
+    push: false
+    useBuildkit: true
+  tagPolicy:
+    gitCommit:
+      variant: CommitSha
+manifests:
+  helm:
+    releases:
+      - name: agent-app
+        chartPath: app/helm
+        setValues:
+          name: agent-app
+          image: agent-app
+          replicas: 1
+          port: 8080
+        setValueTemplates:
+          api_key: "{{ .API_KEY }}"
