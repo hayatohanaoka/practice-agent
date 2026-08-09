@@ -3,15 +3,14 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 	"os"
-	"time"
 
 	"google.golang.org/genai"
 
 	"google.golang.org/adk/v2/agent"
+	"google.golang.org/adk/v2/cmd/launcher"
+	"google.golang.org/adk/v2/cmd/launcher/full"
 	"google.golang.org/adk/v2/model/gemini"
-	"google.golang.org/adk/v2/server/adkrest"
 	"google.golang.org/adk/v2/session"
 	"google.golang.org/adk/v2/tool"
 	"google.golang.org/adk/v2/tool/geminitool"
@@ -27,36 +26,23 @@ func main() {
 		log.Fatalf("Failed to create model: %v", err)
 	}
 
-	timeAgent, err := newTimeAgent(model, []tool.Tool{geminitool.GoogleSearch{}})
+	searchAgent, err := searchAgent(model, []tool.Tool{geminitool.GoogleSearch{}})
 	if err != nil {
 		log.Fatalf("Failed to create agent: %v", err)
 	}
 
-	restServer, err := adkrest.NewServer(adkrest.ServerConfig{
-		AgentLoader:     agent.NewSingleLoader(timeAgent),
-		SessionService:  session.InMemoryService(),
-		SSEWriteTimeout: 120 * time.Second,
-	})
-	if err != nil {
-		log.Fatalf("Failed to create REST API server: %v", err)
+	config := &launcher.Config{
+		AgentLoader:    agent.NewSingleLoader(searchAgent),
+		SessionService: session.InMemoryService(),
 	}
 
-	mux := http.NewServeMux()
+	args := os.Args[1:]
+	if len(args) == 0 {
+		args = []string{"web", "api"}
+	}
 
-	mux.Handle("/api/", http.StripPrefix("/api", restServer))
-
-	mux.HandleFunc("/v1/systems/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write([]byte("pong")); err != nil {
-			log.Printf("Failed to write response: %v", err)
-		}
-	})
-
-	log.Println("Starting server on :8080")
-	log.Println("API available at http://localhost:8080/api/")
-	log.Println("Health check at http://localhost:8080/health")
-
-	if err := http.ListenAndServe(":8080", mux); err != nil {
-		log.Fatalf("Server failed: %v", err)
+	l := full.NewLauncher()
+	if err := l.Execute(ctx, config, args); err != nil {
+		log.Fatalf("Failed to launch launcher: %v", err)
 	}
 }

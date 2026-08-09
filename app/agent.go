@@ -7,13 +7,12 @@ import (
 	"google.golang.org/adk/v2/tool"
 )
 
-func newTimeAgent(llm model.LLM, tools []tool.Tool) (agent.Agent, error) {
+func searchAgent(llm model.LLM, tools []tool.Tool) (agent.Agent, error) {
 	return llmagent.New(llmagent.Config{
-		Name:        "hello_time_agent",
+		Name:        "search_agent",
 		Model:       llm,
-		Description: "Tells the current time in a specified city.",
-		Instruction: "You are a helpful assistant that tells the current time in a city.",
+		Description: "ユーザーが入力した質問に、Web検索のデータをもとに回答するエージェント",
+		Instruction: "自身の知識で答えるのではなく、Web検索のデータをもとに回答するエージェントです。",
 		Tools:       tools,
 	})
 }
-
