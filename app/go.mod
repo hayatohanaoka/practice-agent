@@ -1,4 +1,4 @@
-module my-agent
+module company-research-agent
 
 go 1.26.5
 
